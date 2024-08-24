@@ -1,5 +1,6 @@
 use crate::{
-    devices::{find_supported_device, UsbDeviceInfo}, SniffError, UsbDataHeader, UsbHeader, UsbTickHeader
+    devices::{find_supported_device, UsbDeviceInfo},
+    SniffError, UsbDataHeader, UsbHeader, UsbTickHeader,
 };
 
 pub struct CC253X {
@@ -23,6 +24,36 @@ impl CC253X {
             usb_device.read_control(0xc0, 192, 0, 0, &mut buf, timeout)?;
             // power on radio, wIndex = 4
             usb_device.write_control(0x40, 197, 0, 4, &[], timeout)?;
+            loop {
+                usb_device
+                    .read_control(0xc0, 198, 0, 0, &mut buf, timeout)
+                    .unwrap();
+                if buf[0] == 0x04 {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_micros(10000));
+            }
+            println!("powered up!");
+            //unknown command
+            usb_device
+                .write_control(0x40, 201, 0, 0, &[], timeout)
+                .unwrap();
+
+            // set channel command
+            buf[0] = channel;
+            usb_device
+                .write_control(0x40, 210, 0, 0, &buf[0..1], timeout)
+                .unwrap();
+            buf[0] = 0x0;
+            usb_device
+                .write_control(0x40, 210, 0, 1, &buf[0..1], timeout)
+                .unwrap();
+
+            let timeout = std::time::Duration::from_millis(10000);
+            // start sniffing
+            usb_device
+                .write_control(0x40, 208, 0, 0, &[], timeout)
+                .unwrap();
             Ok(CC253X {
                 channel,
                 timestamp_tick: 0,
@@ -91,7 +122,6 @@ impl CC253X {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -116,6 +146,8 @@ mod tests {
             println!("!unknown packet! {:?}", packet);
             Ok(())
         };
-        cc253x.blocking_sniff(&on_packet, Some(&on_unknown_packet)).unwrap();
+        cc253x
+            .blocking_sniff(&on_packet, Some(&on_unknown_packet))
+            .unwrap();
     }
 }
