@@ -33,7 +33,6 @@ impl CC253X {
                 }
                 std::thread::sleep(std::time::Duration::from_micros(10000));
             }
-            println!("powered up!");
             //unknown command
             usb_device
                 .write_control(0x40, 201, 0, 0, &[], timeout)
@@ -63,6 +62,20 @@ impl CC253X {
         } else {
             Err(SniffError::Open)
         }
+    }
+
+    pub fn close(&self) -> Result<(), SniffError> {
+        let timeout = std::time::Duration::from_millis(200);
+        // stop sniffing
+        self.device_handle
+            .write_control(0x40, 209, 0, 0, &[], timeout)?;
+        // power off radio, wIndex = 0
+        self.device_handle
+            .write_control(0x40, 197, 0, 0, &[], timeout)?;
+
+        // clearing
+        self.device_handle.release_interface(0)?;
+        Ok(())
     }
 
     #[allow(clippy::type_complexity)]
@@ -119,6 +132,12 @@ impl CC253X {
 
     pub fn manufacturer(&self) -> String {
         self.usb_device_info.manufacturer.to_owned()
+    }
+}
+
+impl Drop for CC253X {
+    fn drop(&mut self) {
+        self.close().unwrap();
     }
 }
 
