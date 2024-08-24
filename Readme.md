@@ -1,6 +1,6 @@
 # Rusty Zifbee Sniffer
 
-Currently supports sniffing CC2541X flashed with sniffing firmware, based on https://github.com/homewsn/whsniff
+Currently supports sniffing CC2531 flashed with sniffing firmware, based on https://github.com/homewsn/whsniff
 
 ## Pcap capture example
 
