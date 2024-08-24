@@ -1,3 +1,5 @@
+use std::array::TryFromSliceError;
+
 pub mod devices;
 
 #[derive(Debug)]
@@ -22,6 +24,16 @@ pub struct UsbTickHeader
 	pub header: UsbHeader,
     // tick counter
 	pub tick: u8
+}
+
+#[derive(Debug)]
+pub enum SniffError {
+    NoSupportedDevices,
+    Open,
+    Rusb(rusb::Error),
+    Parse,
+    MissingUsbDevice,
+    TryFromSlice,
 }
 
 impl From<&[u8; 3]> for UsbHeader {
@@ -49,6 +61,19 @@ impl From<&[u8; 4]> for UsbTickHeader {
             header: UsbHeader::from(&data[0..3].try_into().unwrap()),
             tick: data[3],
         }
+    }
+}
+
+
+impl From<rusb::Error> for SniffError {
+    fn from(err: rusb::Error) -> Self {
+        SniffError::Rusb(err)
+    }
+}
+
+impl From<TryFromSliceError> for SniffError {
+    fn from(_err: TryFromSliceError) -> Self {
+        SniffError::TryFromSlice
     }
 }
 

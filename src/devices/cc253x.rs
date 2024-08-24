@@ -1,7 +1,5 @@
-use std::array::TryFromSliceError;
 use crate::{
-    devices::devices::{find_supported_device, UsbDeviceInfo},
-    UsbDataHeader, UsbHeader, UsbTickHeader,
+    devices::devices::{find_supported_device, UsbDeviceInfo}, SniffError, UsbDataHeader, UsbHeader, UsbTickHeader
 };
 
 pub struct CC253X {
@@ -42,7 +40,7 @@ impl CC253X {
         on_unknown_packet: Option<&dyn Fn(&[u8]) -> Result<(), SniffError>>,
     ) -> Result<(), SniffError> {
         let mut buf = [0u8; 256];
-        let timeout = std::time::Duration::from_millis(200);
+        let timeout = std::time::Duration::from_millis(10000);
         loop {
             let usb_device = &self.device_handle;
             let res = usb_device.read_bulk(0x83, &mut buf, timeout)?;
@@ -60,6 +58,7 @@ impl CC253X {
                         continue;
                     }
                     let max = std::cmp::min(usb_data_header.wpan_length as usize, packet.len());
+                    //TODO: fix this
                     if max > 8 {
                         let frame = &packet[8..max];
                         let _rssi = usize::from(*frame.last().ok_or(SniffError::Parse)?);
@@ -91,23 +90,29 @@ impl CC253X {
     }
 }
 
-pub enum SniffError {
-    NoSupportedDevices,
-    Open,
-    Rusb(rusb::Error),
-    Parse,
-    MissingUsbDevice,
-    TryFromSlice
-}
 
-impl From<rusb::Error> for SniffError {
-    fn from(err: rusb::Error) -> Self {
-        SniffError::Rusb(err)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_open() {
+        let _cc253x = CC253X::open(11).unwrap();
     }
-}
 
-impl From<TryFromSliceError> for SniffError {
-    fn from(_err: TryFromSliceError) -> Self {
-        SniffError::TryFromSlice
+    //cargo test test_sniff -- --nocapture --ignored
+    #[ignore]
+    #[test]
+    fn test_sniff() {
+        let mut cc253x = CC253X::open(15).unwrap();
+        let on_packet = |packet: &[u8]| {
+            println!("{:?}", packet);
+            Ok(())
+        };
+        let on_unknown_packet = |packet: &[u8]| {
+            println!("!unknown packet! {:?}", packet);
+            Ok(())
+        };
+        cc253x.blocking_sniff(&on_packet, Some(&on_unknown_packet)).unwrap();
     }
 }
