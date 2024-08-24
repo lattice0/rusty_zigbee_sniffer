@@ -95,6 +95,8 @@ impl CC253X {
 mod tests {
     use super::*;
 
+    //cargo test test_open -- --nocapture --ignored
+    #[ignore]
     #[test]
     fn test_open() {
         let _cc253x = CC253X::open(11).unwrap();
