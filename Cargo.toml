@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rusb = {path="../rusb"}
+rusb = {git="https://github.com/a1ien/rusb", rev = "8f8c3c6bff6a494a140da4d93dd946bf1e564d66"}

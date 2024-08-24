@@ -20,6 +20,7 @@ checksum = "d8adc4bb1803a324070e64a98ae98f38934d91957a99cfb3a43dcbc01bc56439"
 [[package]]
 name = "libusb1-sys"
 version = "0.7.0"
+source = "git+https://github.com/a1ien/rusb?rev=8f8c3c6bff6a494a140da4d93dd946bf1e564d66#8f8c3c6bff6a494a140da4d93dd946bf1e564d66"
 dependencies = [
  "cc",
  "libc",
@@ -36,6 +37,7 @@ checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 [[package]]
 name = "rusb"
 version = "0.9.4"
+source = "git+https://github.com/a1ien/rusb?rev=8f8c3c6bff6a494a140da4d93dd946bf1e564d66#8f8c3c6bff6a494a140da4d93dd946bf1e564d66"
 dependencies = [
  "libc",
  "libusb1-sys",
