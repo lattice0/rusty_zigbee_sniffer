@@ -1,5 +1,4 @@
 use std::array::TryFromSliceError;
-
 use crate::{
     devices::devices::{find_supported_device, UsbDeviceInfo},
     UsbDataHeader, UsbHeader, UsbTickHeader,
@@ -16,13 +15,6 @@ impl CC253X {
     pub fn open(channel: u8) -> Result<Self, SniffError> {
         if let Some(u) = find_supported_device().map_err(|_| SniffError::NoSupportedDevices)? {
             let device = u.device.as_ref().ok_or(SniffError::MissingUsbDevice)?;
-            println!(
-                "found device: {:?} from manufacturer {:?} at bus {:03} address {:03}",
-                u.product_name,
-                u.manufacturer,
-                device.bus_number(),
-                device.address()
-            );
             let timeout = std::time::Duration::from_millis(200);
             let usb_device = device.open()?;
             usb_device.kernel_driver_active(0)?;
@@ -89,6 +81,14 @@ impl CC253X {
             }
         }
     }
+
+    pub fn product_name(&self) -> String {
+        self.usb_device_info.product_name.to_owned()
+    }
+
+    pub fn manufacturer(&self) -> String {
+        self.usb_device_info.manufacturer.to_owned()
+    }
 }
 
 pub enum SniffError {
@@ -111,6 +111,3 @@ impl From<TryFromSliceError> for SniffError {
         SniffError::TryFromSlice
     }
 }
-
-//wired ekaza button channel 15
-//data: [0, 36, 0, 47, 33, c0, 11, 31], frame: [61, 88, 64, c9, d, 28, 17, 57, b, 48, 22, 0, 0, 57, b, 1e, b3, 28, 4c, 23, 0, 0, 8, 47, f3, d8, da, 38, c1, a4, 0, a1, a3, e5, 76, 24, 11, 64, e1, fc, 97], len: 54
