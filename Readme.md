@@ -18,4 +18,6 @@ cargo run --example pcap -- 16 /home/$USER/sniff.pcap
 
 - Verify pcap capture and add stdout support for wireshark live sniffing
 - Fix arbitrary length ignores
-- Add support for docker one click install and maybe also sniffer fimrware flashing
+- Add support for docker one click install and maybe also sniffer firmware flashing
+- Add support for other dongles
+- Add trait for sniffing
