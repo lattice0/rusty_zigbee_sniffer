@@ -1,5 +1,5 @@
 use crate::{
-    devices::devices::{find_supported_device, UsbDeviceInfo}, SniffError, UsbDataHeader, UsbHeader, UsbTickHeader
+    devices::{find_supported_device, UsbDeviceInfo}, SniffError, UsbDataHeader, UsbHeader, UsbTickHeader
 };
 
 pub struct CC253X {
@@ -34,6 +34,7 @@ impl CC253X {
         }
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn blocking_sniff(
         &mut self,
         on_packet: &dyn Fn(&[u8]) -> Result<(), SniffError>,
