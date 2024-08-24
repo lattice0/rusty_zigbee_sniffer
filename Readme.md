@@ -4,15 +4,15 @@ Currently supports sniffing CC2541X flashed with sniffing firmware, based on htt
 
 ## Pcap capture example
 
-ˋˋˋ
+```bash
 cargo run --example pcap -- 16
-ˋˋˋ
+```
 
 where 16 is the channel. You can also pass the file path as the second argument:
 
-ˋˋˋ
+```bash
 cargo run --example pcap -- 16 /home/$USER/sniff.pcap
-ˋˋˋ
+```
 
 ### TODOS:
 
