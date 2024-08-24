@@ -37,45 +37,45 @@ impl CC253X {
     #[allow(clippy::type_complexity)]
     pub fn blocking_sniff(
         &mut self,
-        on_packet: &dyn Fn(&[u8]) -> Result<(), SniffError>,
-        on_unknown_packet: Option<&dyn Fn(&[u8]) -> Result<(), SniffError>>,
+        on_frame: &dyn Fn(&[u8]) -> Result<(), SniffError>,
+        on_unknown_frame: Option<&dyn Fn(&[u8]) -> Result<(), SniffError>>,
     ) -> Result<(), SniffError> {
         let mut buf = [0u8; 256];
         let timeout = std::time::Duration::from_millis(10000);
         loop {
             let usb_device = &self.device_handle;
             let res = usb_device.read_bulk(0x83, &mut buf, timeout)?;
-            let packet = &buf[0..res];
-            if packet.len() < std::mem::size_of::<UsbHeader>()
-                || packet.len() < std::mem::size_of::<UsbDataHeader>()
+            let usb_frame = &buf[0..res];
+            if usb_frame.len() < std::mem::size_of::<UsbHeader>()
+                || usb_frame.len() < std::mem::size_of::<UsbDataHeader>()
             {
                 continue;
             }
-            let usb_header = UsbHeader::from(&packet[0..3].try_into()?);
+            let usb_header = UsbHeader::from(&usb_frame[0..3].try_into()?);
             match usb_header.header_type {
                 0 => {
-                    let usb_data_header = UsbDataHeader::from(&packet[0..8].try_into()?);
+                    let usb_data_header = UsbDataHeader::from(&usb_frame[0..8].try_into()?);
                     if usb_data_header.wpan_length <= 5 {
                         continue;
                     }
-                    let max = std::cmp::min(usb_data_header.wpan_length as usize, packet.len());
+                    let max = std::cmp::min(usb_data_header.wpan_length as usize, usb_frame.len());
                     //TODO: fix this
                     if max > 8 {
-                        let frame = &packet[8..max];
+                        let frame = &usb_frame[8..max];
                         let _rssi = usize::from(*frame.last().ok_or(SniffError::Parse)?);
                         let frame = &frame[0..(frame.len() - 1)];
-                        on_packet(frame)?;
+                        on_frame(frame)?;
                     }
                 }
                 1 => {
-                    let usb_tick_header = UsbTickHeader::from(&packet[0..4].try_into()?);
+                    let usb_tick_header = UsbTickHeader::from(&usb_frame[0..4].try_into()?);
                     if usb_tick_header.tick == 0x00 {
                         self.timestamp_tick += 0xFFFFFFFF;
                     }
                 }
                 _ => {
-                    if let Some(f) = on_unknown_packet {
-                        f(packet)?;
+                    if let Some(f) = on_unknown_frame {
+                        f(usb_frame)?;
                     }
                 }
             }
